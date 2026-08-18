@@ -41,6 +41,21 @@ if (fs.existsSync(DEV3D)) {
   console.warn('AVISO: dev3d.js nao encontrado, o hero fica so com o SVG');
 }
 
+// --- fotos da equipe ---
+// pessoas/*.webp ja vem recortado e sem EXIF (gen-avatars.py); so embute.
+const PESSOAS_DIR = path.join(HERE, 'pessoas');
+const AVATARES = { avEduarda: 'eduarda', avMatheus: 'matheus', avThales: 'thales' };
+let avKB = 0;
+for (const [id, slug] of Object.entries(AVATARES)) {
+  const f = path.join(PESSOAS_DIR, slug + '.webp');
+  const re = new RegExp('(<img id="' + id + '" src=")[^"]*(")');
+  if (!fs.existsSync(f)) { console.warn('AVISO: ' + slug + '.webp nao encontrado, rode gen-avatars.py'); continue; }
+  if (!re.test(s)) throw new Error('marcador <img id="' + id + '"> nao encontrado');
+  const data = 'data:image/webp;base64,' + fs.readFileSync(f).toString('base64');
+  avKB += data.length / 1024;
+  s = s.replace(re, (m, a, c) => a + data + c);
+}
+
 // --- paginas do QFD/DFMEA + PDF original ---
 const PAGES_JSON = path.join(HERE, 'paginas', 'pages.json');
 const PDF = path.join(path.dirname(HERE), 'Casa da Qualidade & DFMEA · Pulmio.pdf');
@@ -87,5 +102,6 @@ const mb = f => (fs.statSync(path.join(HERE, f)).size / 1024 / 1024).toFixed(2) 
 console.log('index.html    ', mb('index.html'), pdfKB ? `(inclui PDF de ${pdfKB.toFixed(0)}KB)` : '');
 console.log('artifact.html ', mb('artifact.html'), '(sem PDF)');
 console.log('modelo 3D    ', d3KB ? d3KB.toFixed(0) + 'KB embutidos' : 'ausente');
+console.log('fotos equipe ', avKB ? avKB.toFixed(0) + 'KB embutidas' : 'ausentes');
 console.log('refs externas ', (s.match(/fonts\.googleapis|fonts\.gstatic/g) || []).length);
 console.log('travessoes    ', (s.match(/—/g) || []).length);
