@@ -32,6 +32,9 @@
 }
 
 /* Inter variável embutida (woff2), o site não depende de rede */
+/* Roboto variável embutida: substitui a voz monoespaçada técnica dos
+   rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
+/* Inter variável embutida (woff2), o site não depende de rede */
 /* =========================================================================
    PULMIO, sistema de design
    Tokens → primitivos → componentes → seções
@@ -336,6 +339,12 @@ strong, .strong { color: var(--fg); font-weight: 600; }
 .iconbtn .ic.s2 { display: none; }
 :root[data-theme="light"] .iconbtn.theme .ic.s1 { display: none; }
 :root[data-theme="light"] .iconbtn.theme .ic.s2 { display: block; }
+
+/* --surface no claro é opaco (#fff): desfocar o que está atrás de um .card
+   não muda um pixel sequer ali, só custa composição de GPU à toa em ~20
+   cards recalculados a cada scroll. No escuro --surface é ~3,5% opaco e o
+   desfoque tem efeito real sobre os halos ao fundo, então fica só lá. */
+:root[data-theme="light"] .card { backdrop-filter: none; -webkit-backdrop-filter: none; }
 
 .burger { display: none; }
 .burger .ic { position: absolute; transition: transform .3s var(--ease), opacity .3s var(--ease); }
