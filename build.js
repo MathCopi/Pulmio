@@ -44,7 +44,7 @@ if (fs.existsSync(DEV3D)) {
 // --- fotos da equipe ---
 // pessoas/*.webp ja vem recortado e sem EXIF (gen-avatars.py); so embute.
 const PESSOAS_DIR = path.join(HERE, 'pessoas');
-const AVATARES = { avEduarda: 'eduarda', avMatheus: 'matheus', avThales: 'thales' };
+const AVATARES = { avEduarda: 'eduarda', avMariana: 'mariana', avMatheus: 'matheus', avThales: 'thales' };
 let avKB = 0;
 for (const [id, slug] of Object.entries(AVATARES)) {
   const f = path.join(PESSOAS_DIR, slug + '.webp');

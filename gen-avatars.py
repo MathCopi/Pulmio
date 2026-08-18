@@ -19,8 +19,8 @@ QUALITY = 87
 # so precisa centralizar o rosto, nao isolar a pessoa com precisao
 PESSOAS = [
     ("Eduarda.jpeg", "eduarda", (90, 0, 550, 460)),
-    ("Mariana.jpeg", "mariana", (60, 30, 400, 370)),
-    ("Matheus.jpeg", "matheus", (20, 310, 700, 990)),
+    ("Mariana.jpeg", "mariana", (152, 336, 952, 1136)),   # foto nova, 1200x1600
+    ("Matheus.jpeg", "matheus", (35, 0, 355, 320)),       # foto nova, 400x400
     ("Thales.jpeg",  "thales",  (260, 70, 640, 450)),
 ]
 
