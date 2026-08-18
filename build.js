@@ -19,13 +19,30 @@ const face = `
   src: url(data:font/woff2;base64,${b64('inter-latinext.woff2')}) format('woff2');
   unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
 }
+/* Roboto variável embutida: substitui a voz monoespaçada técnica dos
+   rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
+@font-face {
+  font-family: 'Roboto'; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url(data:font/woff2;base64,${b64('roboto-latin.woff2')}) format('woff2');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face {
+  font-family: 'Roboto'; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url(data:font/woff2;base64,${b64('roboto-latinext.woff2')}) format('woff2');
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
 `;
 
 let s = fs.readFileSync(path.join(HERE, 'index.html'), 'utf8');
 
 // --- fonte embutida (uma vez) ---
 s = s.replace(/<link rel="preconnect"[^>]*>\s*/g, '').replace(/<link href="https:\/\/fonts\.googleapis[^>]*>\s*/g, '');
-if (!s.includes('@font-face')) s = s.replace('<style>', '<style>' + face);
+// remove qualquer @font-face ja embutido antes de reinserir: index.html e'
+// mutado em cada rodada, entao um guard "so insere se nao existir" trava a
+// primeira versao para sempre e ignora mudancas no bloco `face` (foi o que
+// aconteceu ao adicionar a Roboto: o build rodava sem erro e sem efeito)
+s = s.replace(/@font-face\s*\{[^}]*\}\s*/g, '');
+s = s.replace('<style>', '<style>' + face);
 
 // --- modelo 3D do dispositivo ---
 // dev3d.js e' a fonte; aqui ele e' embutido no <script id="dev3d-src">.
