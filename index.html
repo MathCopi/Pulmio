@@ -63,6 +63,9 @@
 /* Roboto variável embutida: substitui a voz monoespaçada técnica dos
    rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
 /* Inter variável embutida (woff2), o site não depende de rede */
+/* Roboto variável embutida: substitui a voz monoespaçada técnica dos
+   rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
+/* Inter variável embutida (woff2), o site não depende de rede */
 /* =========================================================================
    PULMIO, sistema de design
    Tokens → primitivos → componentes → seções
@@ -859,7 +862,10 @@ select.inp {
    desenhado pelo sistema operacional e destoava do resto. Este é um
    combobox ARIA com um <input type="hidden"> carregando o valor, então
    o envio ao Formspree continua idêntico. */
-.sel { position: relative; }
+/* `fsel`, não `sel`: a seção 16 já usa `.sel` para o seletor expansível, com
+   `height: clamp(330px, 42vh, 420px)`. Reusar o nome esticava este botão para
+   361px de altura em telas de 1280x860. */
+.fsel { position: relative; }
 .sel-btn {
   width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 10px 15px; border-radius: var(--r-sm); cursor: pointer; text-align: left;
@@ -870,8 +876,8 @@ select.inp {
 .sel-btn:hover { border-color: var(--border-2); }
 .sel-btn:focus-visible { outline: 0; border-color: color-mix(in oklab, var(--primary) 55%, transparent); background: var(--surface); box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 13%, transparent); }
 .sel-btn .chev { color: var(--fg-3); flex: none; transition: transform .34s var(--ease), color .3s; }
-.sel[data-open="1"] .sel-btn { border-color: color-mix(in oklab, var(--primary) 55%, transparent); background: var(--surface); }
-.sel[data-open="1"] .sel-btn .chev { transform: rotate(180deg); color: var(--primary); }
+.fsel[data-open="1"] .sel-btn { border-color: color-mix(in oklab, var(--primary) 55%, transparent); background: var(--surface); }
+.fsel[data-open="1"] .sel-btn .chev { transform: rotate(180deg); color: var(--primary); }
 .sel-val { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .sel-menu {
@@ -881,7 +887,7 @@ select.inp {
   box-shadow: var(--shadow-2);
   animation: selIn .24s var(--ease);
 }
-.sel[data-drop="up"] .sel-menu { top: auto; bottom: calc(100% + 8px); animation-name: selInUp; }
+.fsel[data-drop="up"] .sel-menu { top: auto; bottom: calc(100% + 8px); animation-name: selInUp; }
 .sel-menu[hidden] { display: none; }
 @keyframes selIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
 @keyframes selInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
@@ -2650,7 +2656,7 @@ select.inp {
           </div>
           <div class="fld">
             <label id="f-ass-lb">Assunto</label>
-            <div class="sel" id="f-ass-sel" data-open="0">
+            <div class="fsel" id="f-ass-sel" data-open="0">
               <input type="hidden" name="assunto" id="f-ass" value="Interesse em pesquisa ou colaboração acadêmica">
               <button class="sel-btn" type="button" id="f-ass-btn"
                       aria-haspopup="listbox" aria-expanded="false" aria-labelledby="f-ass-lb f-ass-btn">
