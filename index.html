@@ -48,6 +48,15 @@
 /* Roboto variável embutida: substitui a voz monoespaçada técnica dos
    rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
 /* Inter variável embutida (woff2), o site não depende de rede */
+/* Roboto variável embutida: substitui a voz monoespaçada técnica dos
+   rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
+/* Inter variável embutida (woff2), o site não depende de rede */
+/* Roboto variável embutida: substitui a voz monoespaçada técnica dos
+   rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
+/* Inter variável embutida (woff2), o site não depende de rede */
+/* Roboto variável embutida: substitui a voz monoespaçada técnica dos
+   rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
+/* Inter variável embutida (woff2), o site não depende de rede */
 /* =========================================================================
    PULMIO, sistema de design
    Tokens → primitivos → componentes → seções
@@ -838,6 +847,106 @@ select.inp {
 .ctxt .want li { display: flex; gap: 12px; align-items: center; font-size: .92rem; color: var(--fg-2); }
 .ctxt .want li .ic { color: var(--primary); font-size: 17px; }
 
+/* ---------- 19b. SELETOR (dropdown do formulário) ----------
+   O <select> nativo não aceita estilo no painel de opções: o menu era
+   desenhado pelo sistema operacional e destoava do resto. Este é um
+   combobox ARIA com um <input type="hidden"> carregando o valor, então
+   o envio ao Formspree continua idêntico. */
+.sel { position: relative; }
+.sel-btn {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 13px 15px; border-radius: var(--r-sm); cursor: pointer; text-align: left;
+  border: 1px solid var(--border); background: var(--surface-2); color: var(--fg);
+  font-family: inherit; font-size: .95rem;
+  transition: border-color .3s, background .3s, box-shadow .3s;
+}
+.sel-btn:hover { border-color: var(--border-2); }
+.sel-btn:focus-visible { outline: 0; border-color: color-mix(in oklab, var(--primary) 55%, transparent); background: var(--surface); box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 13%, transparent); }
+.sel-btn .chev { color: var(--fg-3); flex: none; transition: transform .34s var(--ease), color .3s; }
+.sel[data-open="1"] .sel-btn { border-color: color-mix(in oklab, var(--primary) 55%, transparent); background: var(--surface); }
+.sel[data-open="1"] .sel-btn .chev { transform: rotate(180deg); color: var(--primary); }
+.sel-val { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.sel-menu {
+  position: absolute; left: 0; right: 0; top: calc(100% + 8px); z-index: 30;
+  padding: 6px; border-radius: var(--r-md); overflow: hidden;
+  border: 1px solid var(--border-2); background: var(--bg-2);
+  box-shadow: var(--shadow-2);
+  animation: selIn .24s var(--ease);
+}
+.sel[data-drop="up"] .sel-menu { top: auto; bottom: calc(100% + 8px); animation-name: selInUp; }
+.sel-menu[hidden] { display: none; }
+@keyframes selIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+@keyframes selInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.sel-opt {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 11px 13px; border-radius: var(--r-sm); cursor: pointer; text-align: left;
+  border: 0; background: none; color: var(--fg); font-family: inherit;
+  animation: selOpt .3s var(--ease) both; animation-delay: var(--d, 0ms);
+}
+@keyframes selOpt { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
+.sel-opt b { display: block; font-size: .92rem; font-weight: 500; letter-spacing: -.01em; }
+.sel-opt span { display: block; margin-top: 2px; font-size: .78rem; color: var(--fg-3); }
+.sel-opt .ic { color: var(--primary); flex: none; opacity: 0; transform: scale(.5); transition: opacity .25s var(--ease), transform .35s var(--ease); }
+.sel-opt[aria-selected="true"] .ic { opacity: 1; transform: none; }
+.sel-opt:hover, .sel-opt.cue { background: color-mix(in oklab, var(--primary) 11%, transparent); }
+.sel-opt:hover span, .sel-opt.cue span { color: var(--fg-2); }
+.sel-opt:focus-visible { outline: 0; background: color-mix(in oklab, var(--primary) 15%, transparent); }
+
+/* ---------- 19c. CARTÃO DE LOCALIZAÇÃO ----------
+   Fechado mostra só o rótulo; ao abrir revela a malha esquemática, o
+   alfinete e as coordenadas. A malha é textura, não cartografia. */
+.geo { display: grid; gap: 0; }
+.geo-card {
+  position: relative; width: 100%; overflow: hidden; cursor: pointer; text-align: left;
+  border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--surface);
+  color: var(--fg); font-family: inherit; padding: 0;
+  height: 96px; transition: height .55s var(--ease), border-color .4s var(--ease), transform .35s var(--ease);
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+}
+.geo-card:hover { border-color: var(--border-2); }
+.geo-card:focus-visible { outline: 0; border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 15%, transparent); }
+.geo[data-open="1"] .geo-card { height: 252px; }
+
+.geo-grid { position: absolute; inset: 0; opacity: 0; transition: opacity .5s var(--ease); }
+.geo[data-open="1"] .geo-grid { opacity: 1; }
+.geo-grid .st { stroke: var(--fg); }
+.geo-blocks rect { fill: var(--fg); opacity: .06; }
+
+/* véu na base: sem ele a malha compete com o nome e as coordenadas */
+.geo-scrim { position: absolute; inset: 0; opacity: 0; transition: opacity .5s var(--ease);
+  background: linear-gradient(to top, var(--bg-2) 4%, color-mix(in oklab, var(--bg-2) 55%, transparent) 34%, transparent 62%); }
+.geo[data-open="1"] .geo-scrim { opacity: .92; }
+.geo-pin {
+  position: absolute; left: 50%; top: 52%; transform: translate(-50%, -60%) scale(.4);
+  opacity: 0; transition: opacity .4s var(--ease) .12s, transform .55s var(--ease) .12s;
+  filter: drop-shadow(0 0 12px color-mix(in oklab, var(--primary) 55%, transparent));
+}
+.geo[data-open="1"] .geo-pin { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+.geo-in { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: 16px 18px; }
+.geo-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.geo-top .ic { color: var(--primary); transition: opacity .3s var(--ease); }
+.geo[data-open="1"] .geo-top .ic { opacity: 0; }
+.geo-tag {
+  display: inline-flex; align-items: center; gap: 7px; padding: 4px 10px; border-radius: var(--r-full);
+  background: color-mix(in oklab, var(--bg) 55%, transparent); backdrop-filter: blur(4px);
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--fg-2);
+}
+.geo-tag i { width: 5px; height: 5px; border-radius: 50%; background: var(--primary); flex: none; }
+.geo-bot { display: grid; gap: 4px; }
+.geo-bot b { font-size: .95rem; font-weight: 600; letter-spacing: -.02em; transition: transform .4s var(--ease); }
+.geo-card:hover .geo-bot b { transform: translateX(4px); }
+.geo-more { display: grid; gap: 3px; overflow: hidden; max-height: 0; opacity: 0; transition: max-height .5s var(--ease), opacity .4s var(--ease); }
+.geo[data-open="1"] .geo-more { max-height: 70px; opacity: 1; }
+.geo-more span { font-family: var(--font-mono); font-size: 10px; letter-spacing: .05em; color: var(--fg-2); }
+.geo-rule { height: 1px; margin-top: 6px; background: linear-gradient(90deg, var(--primary), color-mix(in oklab, var(--primary) 25%, transparent), transparent); transform: scaleX(.3); transform-origin: 0 50%; transition: transform .5s var(--ease); }
+.geo-card:hover .geo-rule, .geo[data-open="1"] .geo-rule { transform: scaleX(1); }
+.geo-hint { margin-top: 8px; font-family: var(--font-mono); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(--fg-3); opacity: 0; transition: opacity .3s var(--ease); }
+.geo-card:hover + .geo-hint { opacity: 1; }
+@media (max-width: 600px) { .geo-hint { display: none; } }
+
 /* ---------- 20b. VISUALIZADOR DE DOCUMENTO (sob demanda) ---------- */
 /* Botão que abre o anexo, dentro do acordeão */
 .ab-act { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 0 20px 20px; }
@@ -1294,6 +1403,8 @@ select.inp {
   <symbol id="i-zoom-out" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/><path d="M7.5 10.5h6"/></symbol>
   <symbol id="i-chev-l" viewBox="0 0 24 24"><path d="M14.5 5.5L8 12l6.5 6.5"/></symbol>
   <symbol id="i-chev-r" viewBox="0 0 24 24"><path d="M9.5 5.5L16 12l-6.5 6.5"/></symbol>
+  <symbol id="i-chev-d" viewBox="0 0 24 24"><path d="M5.5 9.5L12 16l6.5-6.5"/></symbol>
+  <symbol id="i-map" viewBox="0 0 24 24"><path d="M3 6.2l6-2.7 6 2.7 6-2.7v14.5l-6 2.7-6-2.7-6 2.7z"/><path d="M9 3.5v15.2"/><path d="M15 6.2v15.2"/></symbol>
   <symbol id="i-fit" viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="13" rx="2"/><path d="M8.5 12h7"/></symbol>
   <symbol id="i-display" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="13" rx="2.5"/><path d="M9 21h6"/><path d="M12 17.5V21"/><path d="M6.5 12l2-3 2 4.5L13 8l2 5 2.5-2"/></symbol>
 </svg>
@@ -2462,6 +2573,53 @@ select.inp {
           <li><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg>Gestores de saúde pública, UBS e Secretarias de Saúde</li>
           <li><svg class="ic" aria-hidden="true"><use href="#i-spark"/></svg>Agências e programas de fomento à inovação</li>
         </ul>
+
+        <div class="geo" id="geo" data-open="0">
+          <button class="geo-card" type="button" id="geoBtn" aria-expanded="false">
+            <!-- malha esquemática: textura de fundo, não representação cartográfica -->
+            <svg class="geo-grid" viewBox="0 0 360 252" preserveAspectRatio="none" aria-hidden="true">
+              <g class="geo-blocks">
+                <rect x="26" y="112" width="54" height="46" rx="3"/>
+                <rect x="128" y="40" width="42" height="38" rx="3"/>
+                <rect x="256" y="168" width="62" height="44" rx="3"/>
+                <rect x="286" y="52" width="34" height="58" rx="3"/>
+                <rect x="20" y="176" width="30" height="30" rx="3"/>
+                <rect x="196" y="24" width="46" height="26" rx="3"/>
+              </g>
+              <g class="st" fill="none" stroke-linecap="round">
+                <path d="M0 88H360" stroke-opacity=".22" stroke-width="4"/>
+                <path d="M0 164H360" stroke-opacity=".22" stroke-width="4"/>
+                <path d="M108 0V252" stroke-opacity=".18" stroke-width="3"/>
+                <path d="M252 0V252" stroke-opacity=".18" stroke-width="3"/>
+                <path d="M0 50H360M0 126H360M0 202H360" stroke-opacity=".09" stroke-width="1.5"/>
+                <path d="M54 0V252M162 0V252M198 0V252M306 0V252" stroke-opacity=".09" stroke-width="1.5"/>
+              </g>
+            </svg>
+
+            <span class="geo-scrim" aria-hidden="true"></span>
+
+            <svg class="geo-pin" width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 2.4c-3.8 0-6.9 3.1-6.9 6.9 0 5.2 6.9 12.3 6.9 12.3s6.9-7.1 6.9-12.3c0-3.8-3.1-6.9-6.9-6.9z" fill="var(--primary)"/>
+              <circle cx="12" cy="9.1" r="2.5" fill="var(--bg-2)"/>
+            </svg>
+
+            <span class="geo-in">
+              <span class="geo-top">
+                <svg class="ic" aria-hidden="true" style="width:18px;height:18px"><use href="#i-map"/></svg>
+                <span class="geo-tag"><i></i>São Paulo · BR</span>
+              </span>
+              <span class="geo-bot">
+                <b>UNESP · Câmpus de Bauru</b>
+                <span class="geo-more">
+                  <span>22.34° S · 49.03° O</span>
+                  <span>Faculdade de Engenharia</span>
+                </span>
+                <span class="geo-rule"></span>
+              </span>
+            </span>
+          </button>
+          <p class="geo-hint" id="geoHint" aria-hidden="true">Clique para expandir</p>
+        </div>
       </div>
 
       <div class="card card-pad rv" style="--d:120ms">
@@ -2484,13 +2642,42 @@ select.inp {
             <input class="inp" id="f-inst" name="instituicao" type="text" placeholder="Universidade, UBS, empresa…">
           </div>
           <div class="fld">
-            <label for="f-ass">Assunto</label>
-            <select class="inp" id="f-ass" name="assunto">
-              <option>Interesse em pesquisa/colaboração acadêmica</option>
-              <option>Interesse institucional (UBS/Secretaria de Saúde)</option>
-              <option>Imprensa</option>
-              <option>Outro</option>
-            </select>
+            <label id="f-ass-lb">Assunto</label>
+            <div class="sel" id="f-ass-sel" data-open="0">
+              <input type="hidden" name="assunto" id="f-ass" value="Interesse em pesquisa ou colaboração acadêmica">
+              <button class="sel-btn" type="button" id="f-ass-btn"
+                      aria-haspopup="listbox" aria-expanded="false" aria-labelledby="f-ass-lb f-ass-btn">
+                <span class="sel-val" id="f-ass-val">Interesse em pesquisa ou colaboração acadêmica</span>
+                <svg class="ic chev" aria-hidden="true"><use href="#i-chev-d"/></svg>
+              </button>
+              <div class="sel-menu" id="f-ass-menu" role="listbox" aria-labelledby="f-ass-lb" tabindex="-1" hidden>
+                <button class="sel-opt" type="button" role="option" aria-selected="true"
+                        data-v="Interesse em pesquisa ou colaboração acadêmica">
+                  <span><b>Pesquisa e colaboração acadêmica</b><span>Materiais 2D, sensores, química computacional</span></span>
+                  <svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>
+                </button>
+                <button class="sel-opt" type="button" role="option" aria-selected="false"
+                        data-v="Interesse institucional (UBS ou Secretaria de Saúde)">
+                  <span><b>Interesse institucional</b><span>UBS, Secretarias e gestão de saúde pública</span></span>
+                  <svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>
+                </button>
+                <button class="sel-opt" type="button" role="option" aria-selected="false"
+                        data-v="Fomento à inovação">
+                  <span><b>Fomento à inovação</b><span>Agências, editais e programas de apoio</span></span>
+                  <svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>
+                </button>
+                <button class="sel-opt" type="button" role="option" aria-selected="false"
+                        data-v="Imprensa">
+                  <span><b>Imprensa</b><span>Entrevistas e material de divulgação</span></span>
+                  <svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>
+                </button>
+                <button class="sel-opt" type="button" role="option" aria-selected="false"
+                        data-v="Outro">
+                  <span><b>Outro</b><span>Qualquer assunto fora das opções acima</span></span>
+                  <svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>
+                </button>
+              </div>
+            </div>
           </div>
           <div class="fld">
             <label for="f-msg">Mensagem</label>
@@ -3366,6 +3553,98 @@ select.inp {
         else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
       }
     });
+  })();
+
+  /* ---------- seletor de assunto (combobox ARIA) ---------- */
+  (function () {
+    var sel = $('#f-ass-sel');
+    if (!sel) return;
+    var btn = $('#f-ass-btn'), menu = $('#f-ass-menu'), val = $('#f-ass-val'), campo = $('#f-ass');
+    var opts = $$('.sel-opt', menu);
+    var cue = 0;   /* opção sob o cursor do teclado */
+
+    function marcarCue(i) {
+      cue = (i + opts.length) % opts.length;
+      opts.forEach(function (o, k) { o.classList.toggle('cue', k === cue); });
+      opts[cue].scrollIntoView({ block: 'nearest' });
+    }
+
+    function abrir() {
+      /* abre para cima se não houver espaço embaixo */
+      var r = btn.getBoundingClientRect();
+      sel.setAttribute('data-drop', (window.innerHeight - r.bottom < 280 && r.top > 280) ? 'up' : 'down');
+      opts.forEach(function (o, i) { o.style.setProperty('--d', (i * 40) + 'ms'); });
+      menu.hidden = false;
+      sel.setAttribute('data-open', '1');
+      btn.setAttribute('aria-expanded', 'true');
+      marcarCue(opts.findIndex(function (o) { return o.getAttribute('aria-selected') === 'true'; }));
+    }
+
+    function fechar(devolverFoco) {
+      menu.hidden = true;
+      sel.setAttribute('data-open', '0');
+      btn.setAttribute('aria-expanded', 'false');
+      opts.forEach(function (o) { o.classList.remove('cue'); });
+      if (devolverFoco) btn.focus();
+    }
+
+    function escolher(o) {
+      opts.forEach(function (x) { x.setAttribute('aria-selected', String(x === o)); });
+      campo.value = o.getAttribute('data-v');
+      val.textContent = o.getAttribute('data-v');
+      fechar(true);
+    }
+
+    btn.addEventListener('click', function () { menu.hidden ? abrir() : fechar(false); });
+    opts.forEach(function (o) { o.addEventListener('click', function () { escolher(o); }); });
+    opts.forEach(function (o, i) { o.addEventListener('mousemove', function () { marcarCue(i); }); });
+
+    sel.addEventListener('keydown', function (e) {
+      var aberto = !menu.hidden;
+      if (!aberto && (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault(); abrir(); return;
+      }
+      if (!aberto) return;
+      if (e.key === 'Escape') { e.preventDefault(); fechar(true); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); marcarCue(cue + 1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); marcarCue(cue - 1); }
+      else if (e.key === 'Home') { e.preventDefault(); marcarCue(0); }
+      else if (e.key === 'End') { e.preventDefault(); marcarCue(opts.length - 1); }
+      else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); escolher(opts[cue]); }
+      else if (e.key === 'Tab') { fechar(false); }
+    });
+
+    document.addEventListener('click', function (e) { if (!sel.contains(e.target)) fechar(false); });
+  })();
+
+  /* ---------- cartão de localização ---------- */
+  (function () {
+    var geo = $('#geo');
+    if (!geo) return;
+    var card = $('#geoBtn');
+
+    card.addEventListener('click', function () {
+      var aberto = geo.getAttribute('data-open') === '1';
+      geo.setAttribute('data-open', aberto ? '0' : '1');
+      card.setAttribute('aria-expanded', String(!aberto));
+      var h = $('#geoHint');
+      if (h) h.textContent = aberto ? 'Clique para expandir' : 'Clique para recolher';
+    });
+
+    /* inclinação sutil acompanhando o cursor, só onde há mouse de verdade */
+    if (window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      card.addEventListener('mousemove', function (e) {
+        var r = card.getBoundingClientRect();
+        var dx = (e.clientX - (r.left + r.width / 2)) / (r.width / 2);
+        var dy = (e.clientY - (r.top + r.height / 2)) / (r.height / 2);
+        card.style.setProperty('--ry', (dx * 4).toFixed(2) + 'deg');
+        card.style.setProperty('--rx', (-dy * 4).toFixed(2) + 'deg');
+      });
+      card.addEventListener('mouseleave', function () {
+        card.style.setProperty('--ry', '0deg');
+        card.style.setProperty('--rx', '0deg');
+      });
+    }
   })();
 
   /* ---------- formulário (Formspree) ----------
