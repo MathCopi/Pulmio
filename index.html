@@ -42,6 +42,12 @@
 /* Roboto variável embutida: substitui a voz monoespaçada técnica dos
    rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
 /* Inter variável embutida (woff2), o site não depende de rede */
+/* Roboto variável embutida: substitui a voz monoespaçada técnica dos
+   rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
+/* Inter variável embutida (woff2), o site não depende de rede */
+/* Roboto variável embutida: substitui a voz monoespaçada técnica dos
+   rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
+/* Inter variável embutida (woff2), o site não depende de rede */
 /* =========================================================================
    PULMIO, sistema de design
    Tokens → primitivos → componentes → seções
@@ -823,6 +829,9 @@ select.inp {
 .sent .ic { color: var(--primary); font-size: 20px; margin-top: 2px; }
 .sent b { display: block; font-size: .95rem; }
 .sent p { margin-top: 4px; font-size: .86rem; color: var(--fg-2); }
+.sent.err { border-color: color-mix(in oklab, var(--danger) 34%, transparent); background: color-mix(in oklab, var(--danger) 8%, transparent); }
+.sent.err .ic { color: var(--danger); }
+.btn[disabled] { opacity: .6; cursor: default; pointer-events: none; }
 
 .ctxt { display: grid; gap: 22px; align-content: start; }
 .ctxt .want { display: grid; gap: 12px; }
@@ -2456,7 +2465,10 @@ select.inp {
       </div>
 
       <div class="card card-pad rv" style="--d:120ms">
-        <form class="form" id="form" novalidate>
+        <form class="form" id="form" novalidate action="https://formspree.io/f/xppakqjy" method="POST">
+          <!-- honeypot: campo invisível para humanos, que só um robô preenche -->
+          <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
+          <input type="hidden" name="_subject" id="f-subj" value="Contato pelo site Pulmio">
           <div class="row2">
             <div class="fld">
               <label for="f-nome">Nome</label>
@@ -2486,16 +2498,16 @@ select.inp {
           </div>
           <div class="form-ft">
             <p class="form-note">Seus dados são usados apenas para responder a este contato.</p>
-            <button class="btn btn-p btn-lg" type="submit">
-              Enviar mensagem
+            <button class="btn btn-p btn-lg" type="submit" id="formBtn">
+              <span id="formBtnLabel">Enviar mensagem</span>
               <svg class="ic" aria-hidden="true"><use href="#i-arrow-r"/></svg>
             </button>
           </div>
           <div class="sent" id="sent" role="status">
-            <svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg>
+            <svg class="ic" id="sentIc" aria-hidden="true"><use href="#i-check"/></svg>
             <div>
-              <b>Formulário ainda não conectado</b>
-              <p>Este site é a base visual do projeto: o envio de mensagens ainda não está ligado a um servidor. Enquanto isso, o contato pode ser feito diretamente com a equipe na UNESP Bauru.</p>
+              <b id="sentTitle">Mensagem enviada</b>
+              <p id="sentMsg">Obrigado pelo contato. A equipe do Pulmio responde em breve.</p>
             </div>
           </div>
         </form>
@@ -3356,14 +3368,44 @@ select.inp {
     });
   })();
 
-  /* ---------- formulário ---------- */
+  /* ---------- formulário (Formspree) ----------
+     o action/method no <form> é o fallback sem JS: se o fetch abaixo falhar
+     por algum motivo antes de rodar, o navegador ainda envia via POST normal. */
   var form = $('#form');
   if (form) form.addEventListener('submit', function (e) {
     e.preventDefault();
     if (!form.checkValidity()) { form.reportValidity(); return; }
-    var s = $('#sent');
-    s.classList.add('on');
-    s.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    var assunto = $('#f-ass'); if (assunto) $('#f-subj').value = 'Pulmio · ' + assunto.value;
+
+    var btn = $('#formBtn'), label = $('#formBtnLabel'), textoOriginal = label.textContent;
+    btn.disabled = true; label.textContent = 'Enviando…';
+
+    fetch(form.action, {
+      method: 'POST',
+      body: new FormData(form),
+      headers: { 'Accept': 'application/json' }
+    }).then(function (r) {
+      if (!r.ok) throw new Error('resposta ' + r.status);
+      mostrarAviso(true);
+      form.reset();
+    }).catch(function () {
+      mostrarAviso(false);
+    }).finally(function () {
+      btn.disabled = false; label.textContent = textoOriginal;
+    });
+
+    function mostrarAviso(ok) {
+      var s = $('#sent'), ic = $('#sentIc'), titulo = $('#sentTitle'), msg = $('#sentMsg');
+      s.classList.toggle('err', !ok);
+      ic.innerHTML = '<use href="#' + (ok ? 'i-check' : 'i-alert') + '"/>';
+      titulo.textContent = ok ? 'Mensagem enviada' : 'Não foi possível enviar';
+      msg.textContent = ok
+        ? 'Obrigado pelo contato. A equipe do Pulmio responde em breve.'
+        : 'Algo deu errado no envio. Tente novamente em instantes.';
+      s.classList.add('on');
+      s.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   });
 })();
 </script>
