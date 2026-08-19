@@ -61,6 +61,9 @@
 /* Roboto variável embutida: substitui a voz monoespaçada técnica dos
    rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
 /* Inter variável embutida (woff2), o site não depende de rede */
+/* Roboto variável embutida: substitui a voz monoespaçada técnica dos
+   rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
+/* Inter variável embutida (woff2), o site não depende de rede */
 /* =========================================================================
    PULMIO, sistema de design
    Tokens → primitivos → componentes → seções
@@ -439,6 +442,26 @@ html.anim .wrd.in { animation: word .85s var(--ease) forwards; animation-delay: 
   0% { opacity: 0; transform: translateY(28px) scale(.9); filter: blur(9px); }
   55% { opacity: .85; transform: translateY(7px) scale(.98); filter: blur(2px); }
   100% { opacity: 1; transform: none; filter: blur(0); }
+}
+/* O título fica oculto entre a pintura do HTML e o recorte em palavras.
+   Sem isso o texto inteiro aparecia, sumia ao virar <span class="wrd">
+   (opacity 0) e voltava palavra por palavra: o piscar da entrada.
+   O recorte roda num <script> logo abaixo do <h1>, ainda durante o parse,
+   então a janela oculta não chega a virar quadro na tela. */
+html.anim [data-words] { visibility: hidden; }
+html.anim [data-words].pronto { visibility: visible; }
+
+/* Respiração: passada a entrada, o título continua vivo no ritmo de um
+   pulmão em repouso. Ciclo de 5.4s (perto dos 12 por minuto de um adulto
+   calmo), com a inspiração mais curta que a expiração, como de verdade.
+   A escala é mínima de propósito: para ser sentida, não vista. */
+.h1.resp { animation: respira 5.4s infinite; transform-origin: 50% 62%; }
+@keyframes respira {
+  0%   { transform: scale(1); animation-timing-function: cubic-bezier(.42,0,.35,1); }
+  36%  { transform: scale(1.014); animation-timing-function: linear; }
+  46%  { transform: scale(1.0135); animation-timing-function: cubic-bezier(.45,0,.5,1); }
+  92%  { transform: scale(1); animation-timing-function: linear; }
+  100% { transform: scale(1); }
 }
 
 /* ---------- 9. CABEÇALHO DE SEÇÃO ---------- */
@@ -1510,6 +1533,46 @@ select.inp {
       Diagnóstico respiratório e metabólico
       <em style="font-style:normal;display:block;color:var(--fg-2);font-weight:400;font-size:.62em;letter-spacing:-.035em;margin-top:.28em" data-words-line>em um sopro.</em>
     </h1>
+    <script>
+      /* Recorte em palavras aqui, e não no script do fim da página: rodando
+         durante o parse, o título nunca chega a ser pintado por inteiro antes
+         de virar palavras. Se este bloco falhar, o CSS acima nunca recebe
+         `pronto`, então o `setTimeout` de segurança revela o texto. */
+      (function () {
+        var h = document.getElementById('h-hero');
+        var raiz = document.documentElement;
+        function revelar() { h.classList.add('pronto'); }
+        var seguranca = setTimeout(revelar, 1200);
+        if (!raiz.classList.contains('anim')) { revelar(); return; }
+
+        var passo = 78, t = 260;
+        (function recorta(no) {
+          Array.prototype.slice.call(no.childNodes).forEach(function (n) {
+            if (n.nodeType === 3) {
+              var frag = document.createDocumentFragment();
+              n.textContent.split(/(\s+)/).forEach(function (p) {
+                if (!p.trim()) { frag.appendChild(document.createTextNode(p)); return; }
+                var s = document.createElement('span');
+                s.className = 'wrd';
+                s.style.setProperty('--d', t + 'ms');
+                s.textContent = p;
+                t += passo;
+                frag.appendChild(s);
+              });
+              n.parentNode.replaceChild(frag, n);
+            } else if (n.nodeType === 1) { recorta(n); }
+          });
+        })(h);
+
+        var palavras = h.querySelectorAll('.wrd');
+        clearTimeout(seguranca);
+        revelar();
+        for (var i = 0; i < palavras.length; i++) palavras[i].classList.add('in');
+
+        /* a respiração começa quando a última palavra termina de entrar */
+        setTimeout(function () { h.classList.add('resp'); }, t - passo + 850);
+      })();
+    </script>
 
     <p class="lead hero-sub rv" style="--d:1500ms">
       Um sensor portátil de hálito, em desenvolvimento na UNESP Bauru, capaz de rastrear
@@ -3091,34 +3154,8 @@ select.inp {
   }, { threshold: 0.35 });
   $$('.bar').forEach(function (b, i) { b.style.setProperty('--d', (i % 4) * 110 + 'ms'); ioBar.observe(b); });
 
-  /* ---------- hero: palavra por palavra ---------- */
-  (function () {
-    var h = $('[data-words]');
-    if (!h) return;
-    var step = 78, t = 260;
-    function split(node) {
-      Array.prototype.slice.call(node.childNodes).forEach(function (n) {
-        if (n.nodeType === 3) {
-          var words = n.textContent.split(/(\s+)/);
-          var frag = document.createDocumentFragment();
-          words.forEach(function (w) {
-            if (!w.trim()) { frag.appendChild(document.createTextNode(w)); return; }
-            var s = document.createElement('span');
-            s.className = 'wrd';
-            s.style.setProperty('--d', t + 'ms');
-            s.textContent = w;
-            t += step;
-            frag.appendChild(s);
-          });
-          n.parentNode.replaceChild(frag, n);
-        } else if (n.nodeType === 1) {
-          split(n);
-        }
-      });
-    }
-    split(h);
-    $$('.wrd', h).forEach(function (w) { w.classList.add('in'); });
-  })();
+  /* o hero (recorte em palavras e respiração) roda no <script> junto ao <h1>,
+     ainda durante o parse, para o título não piscar antes de ser recortado */
 
   /* ---------- contadores ---------- */
   var ioNum = new IntersectionObserver(function (entries) {
