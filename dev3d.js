@@ -560,7 +560,7 @@
       'SENSOR QUIMIORRESISTIVO',
       'HETEROESTRUTURA Ti3C2 / MoS2',
       '',
-      'TRL 2-3',
+      'PROVA DE CONCEITO',
       'SEM PROTOTIPO FISICO',
       '',
       'UNESP BAURU',
