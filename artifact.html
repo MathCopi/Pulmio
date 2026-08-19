@@ -49,6 +49,9 @@
 /* Roboto variável embutida: substitui a voz monoespaçada técnica dos
    rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
 /* Inter variável embutida (woff2), o site não depende de rede */
+/* Roboto variável embutida: substitui a voz monoespaçada técnica dos
+   rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
+/* Inter variável embutida (woff2), o site não depende de rede */
 /* =========================================================================
    PULMIO, sistema de design
    Tokens → primitivos → componentes → seções
@@ -899,7 +902,7 @@ select.inp {
 }
 .geo-card:hover { border-color: var(--border-2); }
 .geo-card:focus-visible { outline: 0; border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 15%, transparent); }
-.geo[data-open="1"] .geo-card { height: 252px; }
+.geo[data-open="1"] .geo-card { height: 172px; }
 
 .geo-grid { position: absolute; inset: 0; opacity: 0; transition: opacity .5s var(--ease); }
 .geo[data-open="1"] .geo-grid { opacity: 1; }
@@ -911,7 +914,7 @@ select.inp {
   background: linear-gradient(to top, var(--bg-2) 4%, color-mix(in oklab, var(--bg-2) 55%, transparent) 34%, transparent 62%); }
 .geo[data-open="1"] .geo-scrim { opacity: .92; }
 .geo-pin {
-  position: absolute; left: 50%; top: 52%; transform: translate(-50%, -60%) scale(.4);
+  position: absolute; left: 50%; top: 33%; transform: translate(-50%, -60%) scale(.4);
   opacity: 0; transition: opacity .4s var(--ease) .12s, transform .55s var(--ease) .12s;
   filter: drop-shadow(0 0 12px color-mix(in oklab, var(--primary) 55%, transparent));
 }
@@ -2586,7 +2589,7 @@ select.inp {
 
             <span class="geo-scrim" aria-hidden="true"></span>
 
-            <svg class="geo-pin" width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <svg class="geo-pin" width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M12 2.4c-3.8 0-6.9 3.1-6.9 6.9 0 5.2 6.9 12.3 6.9 12.3s6.9-7.1 6.9-12.3c0-3.8-3.1-6.9-6.9-6.9z" fill="var(--primary)"/>
               <circle cx="12" cy="9.1" r="2.5" fill="var(--bg-2)"/>
             </svg>
