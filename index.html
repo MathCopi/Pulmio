@@ -72,6 +72,9 @@
 /* Roboto variável embutida: substitui a voz monoespaçada técnica dos
    rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
 /* Inter variável embutida (woff2), o site não depende de rede */
+/* Roboto variável embutida: substitui a voz monoespaçada técnica dos
+   rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
+/* Inter variável embutida (woff2), o site não depende de rede */
 /* =========================================================================
    PULMIO, sistema de design
    Tokens → primitivos → componentes → seções
@@ -1586,13 +1589,17 @@ select.inp {
       })();
     </script>
 
-    <p class="lead hero-sub rv" style="--d:1500ms">
+    <!-- Os atrasos abaixo esperavam a entrada palavra por palavra do título
+         terminar (1.6s), o que fazia a primeira tela demorar a se montar.
+         Agora entram junto com o título, num escalonamento curto só para não
+         surgirem todos no mesmo quadro. -->
+    <p class="lead hero-sub rv" style="--d:0ms">
       Um sensor portátil de hálito, em desenvolvimento na UNESP Bauru, capaz de rastrear
       sinais de <strong>câncer de pulmão</strong>, <strong>asma</strong>, <strong>DPOC</strong> e
       <strong>diabetes</strong> com um único dispositivo, sem agulhas, sem radiação e sem exame invasivo.
     </p>
 
-    <div class="hero-cta rv" style="--d:1680ms">
+    <div class="hero-cta rv" style="--d:80ms">
       <a class="btn btn-p btn-lg" href="#tecnologia">
         Conheça a tecnologia
         <svg class="ic" aria-hidden="true"><use href="#i-arrow-r"/></svg>
@@ -1603,7 +1610,7 @@ select.inp {
       </a>
     </div>
 
-    <div class="hero-meta rv" style="--d:1840ms">
+    <div class="hero-meta rv" style="--d:160ms">
       <span class="chip t"><svg class="ic" aria-hidden="true"><use href="#i-layers"/></svg>Heteroestrutura Ti₃C₂/MoS₂</span>
       <span class="chip"><svg class="ic" aria-hidden="true"><use href="#i-thermo"/></svg>Opera à temperatura ambiente</span>
       <span class="chip b"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>Leitura em menos de 60 s</span>
@@ -1612,7 +1619,7 @@ select.inp {
     <!-- visual conceitual do dispositivo (spatial-product-showcase).
          O SVG é o conteúdo base; dev3d.js troca por um modelo 3D em WebGL
          se o contexto abrir, e mantém o SVG se não abrir. -->
-    <div class="stage rv" style="--d:1980ms">
+    <div class="stage rv" style="--d:240ms">
       <div class="stage-halo" aria-hidden="true"></div>
       <div class="stage-ring" aria-hidden="true"></div>
       <div class="stage-ring r2" aria-hidden="true"></div>
