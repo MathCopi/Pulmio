@@ -688,6 +688,12 @@
 
   var yaw = -0.44, pitch = 0.11;
   var manual = false, idleAt = 0, dragging = false, px = 0, py = 0;
+  /* zoom: a camera se aproxima dividindo a distancia base. O padrao ja
+     enquadra o aparelho maior do que o enquadramento original. */
+  /* ZDEF medido: e' o enquadramento maior que ainda deixa folga em todos
+     os angulos alcancaveis pelo arrasto (a sombra de contato encostava na
+     borda de baixo a partir de 1.18). */
+  var BASE = 44, ZMIN = 0.85, ZMAX = 2.4, ZDEF = 1.12, zoom = ZDEF, zoomSync = null;
   var t0 = performance.now(), tNow = 0, texT = -1;
   var DPR = 1, cw = 0, ch = 0;
 
@@ -729,7 +735,7 @@
       manual = false;
     }
 
-    var dist = 44;
+    var dist = BASE / zoom;
     var eye = [Math.sin(yaw) * Math.cos(pitch) * dist,
                Math.sin(pitch) * dist + 1.0,
                Math.cos(yaw) * Math.cos(pitch) * dist];
@@ -858,12 +864,63 @@
   cv.addEventListener('pointerup', drop);
   cv.addEventListener('pointercancel', drop);
 
+  /* ----------------------------- zoom -----------------------------
+     A roda do mouse sozinha NAO aproxima: o modelo fica no alto da
+     pagina, e capturar a rolagem ali prenderia quem so quer descer.
+     Aproximar pede intencao: os botoes, pinca, teclas +/- ou ctrl+roda. */
+  function setZoom(z, motivo) {
+    var antes = zoom;
+    zoom = cl(z, ZMIN, ZMAX);
+    if (zoom === antes) return false;
+    manual = true; idleAt = tNow;
+    if (motivo !== 'silencioso') start();
+    if (zoomSync) zoomSync();
+    render();
+    return true;
+  }
+
+  cv.addEventListener('wheel', function (e) {
+    if (!(e.ctrlKey || e.metaKey)) return;    /* sem ctrl, a pagina rola */
+    e.preventDefault();
+    setZoom(zoom * (e.deltaY < 0 ? 1.12 : 1 / 1.12));
+  }, { passive: false });
+
+  /* pinca: dois dedos na tela */
+  var toques = {}, pinca = 0;
+  cv.addEventListener('pointerdown', function (e) {
+    if (e.pointerType !== 'touch') return;
+    toques[e.pointerId] = [e.clientX, e.clientY];
+    var ids = Object.keys(toques);
+    if (ids.length === 2) {
+      dragging = false; host.classList.remove('dragging');
+      pinca = Math.hypot(toques[ids[0]][0] - toques[ids[1]][0], toques[ids[0]][1] - toques[ids[1]][1]);
+    }
+  });
+  cv.addEventListener('pointermove', function (e) {
+    if (e.pointerType !== 'touch' || !toques[e.pointerId]) return;
+    toques[e.pointerId] = [e.clientX, e.clientY];
+    var ids = Object.keys(toques);
+    if (ids.length !== 2 || !pinca) return;
+    e.preventDefault();
+    var d = Math.hypot(toques[ids[0]][0] - toques[ids[1]][0], toques[ids[0]][1] - toques[ids[1]][1]);
+    setZoom(zoom * (d / pinca));
+    pinca = d;
+  }, { passive: false });
+  function largaToque(e) { delete toques[e.pointerId]; if (Object.keys(toques).length < 2) pinca = 0; }
+  cv.addEventListener('pointerup', largaToque);
+  cv.addEventListener('pointercancel', largaToque);
+
+  cv.addEventListener('dblclick', function () { setZoom(ZDEF); });
+
   cv.addEventListener('keydown', function (e) {
     var step = 0.14;
     if (e.key === 'ArrowLeft') yaw -= step;
     else if (e.key === 'ArrowRight') yaw += step;
     else if (e.key === 'ArrowUp') pitch = cl(pitch + step * 0.6, -0.55, 0.75);
     else if (e.key === 'ArrowDown') pitch = cl(pitch - step * 0.6, -0.55, 0.75);
+    else if (e.key === '+' || e.key === '=') { e.preventDefault(); setZoom(zoom * 1.14); return; }
+    else if (e.key === '-' || e.key === '_') { e.preventDefault(); setZoom(zoom / 1.14); return; }
+    else if (e.key === '0') { e.preventDefault(); setZoom(ZDEF); return; }
     else return;
     e.preventDefault();
     manual = true; idleAt = tNow; start();
@@ -877,11 +934,38 @@
     canvas: cv,
     redraw: function () { render(); },
     view: function (y, p) {
-      if (y === undefined) return { yaw: yaw, pitch: pitch, manual: manual };
+      if (y === undefined) return { yaw: yaw, pitch: pitch, manual: manual, zoom: zoom };
       yaw = y; pitch = cl(p === undefined ? pitch : p, -0.55, 0.75);
       manual = true; idleAt = tNow; render();
-    }
+    },
+    /* usado pelos botoes de zoom do palco */
+    zoomBy: function (f) { return setZoom(f === 0 ? ZDEF : zoom * f); },
+    zoomInfo: function () { return { zoom: zoom, min: ZMIN, max: ZMAX }; }
   };
+
+  /* botoes de zoom do palco: existem no HTML, mas so ganham funcao aqui,
+     quando o WebGL abriu de fato */
+  (function () {
+    var caixa = document.getElementById('dev3dZoom');
+    if (!caixa) return;
+    var btns = caixa.querySelectorAll('button');
+    function sincroniza() {
+      for (var i = 0; i < btns.length; i++) {
+        var k = btns[i].getAttribute('data-z');
+        if (k === 'mais') btns[i].disabled = zoom >= ZMAX - 0.001;
+        else if (k === 'menos') btns[i].disabled = zoom <= ZMIN + 0.001;
+      }
+    }
+    caixa.addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (!b) return;
+      var k = b.getAttribute('data-z');
+      setZoom(k === 'mais' ? zoom * 1.18 : k === 'menos' ? zoom / 1.18 : ZDEF);
+      sincroniza();
+    });
+    zoomSync = sincroniza;
+    sincroniza();
+  })();
 
   host.classList.add('is3d');
   cv.setAttribute('tabindex', '0');

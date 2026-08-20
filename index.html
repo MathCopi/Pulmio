@@ -75,6 +75,12 @@
 /* Roboto variável embutida: substitui a voz monoespaçada técnica dos
    rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
 /* Inter variável embutida (woff2), o site não depende de rede */
+/* Roboto variável embutida: substitui a voz monoespaçada técnica dos
+   rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
+/* Inter variável embutida (woff2), o site não depende de rede */
+/* Roboto variável embutida: substitui a voz monoespaçada técnica dos
+   rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
+/* Inter variável embutida (woff2), o site não depende de rede */
 /* =========================================================================
    PULMIO, sistema de design
    Tokens → primitivos → componentes → seções
@@ -501,7 +507,7 @@ section { position: relative; }
 .badge-top b { color: var(--fg); font-weight: 600; }
 .badge-top .tag { padding: 3px 9px; border-radius: var(--r-full); background: color-mix(in oklab, var(--primary) 15%, transparent); color: var(--primary); font-weight: 600; letter-spacing: .1em; }
 
-.stage { position: relative; margin: clamp(46px, 6vw, 78px) auto 0; width: min(100%, 700px); aspect-ratio: 1 / .78; }
+.stage { position: relative; margin: clamp(46px, 6vw, 78px) auto 0; width: min(100%, 760px); aspect-ratio: 1 / .78; }
 /* spatial-product-showcase.tsx → anéis + halo respirando */
 .stage-ring { position: absolute; inset: 4%; border-radius: 50%; border: 1px dashed var(--border-2); animation: spin 34s linear infinite; }
 .stage-ring.r2 { inset: 15%; border-style: solid; border-color: var(--border); animation-duration: 26s; animation-direction: reverse; }
@@ -544,6 +550,29 @@ section { position: relative; }
 .stage:hover .dev3d-hint, .stage:focus-within .dev3d-hint { opacity: 1; }
 .dev3d-hint .ic { width: 12px; height: 12px; }
 @media (max-width: 700px) { .dev3d-hint { display: none !important; } }
+
+/* Botões de zoom do modelo. Existem porque a roda do mouse sozinha não
+   aproxima: o modelo fica no alto da página e capturar a rolagem ali
+   prenderia quem só quer descer. Aqui a intenção é explícita. */
+.dev3d-zoom {
+  position: absolute; right: 3%; bottom: 14%; z-index: 3;
+  display: none; flex-direction: column; gap: 6px;
+}
+.stage:has(.stage-dev.is3d) .dev3d-zoom { display: flex; }
+.dev3d-zoom button {
+  width: 34px; height: 34px; display: grid; place-items: center; cursor: pointer;
+  border: 1px solid var(--border); border-radius: var(--r-sm);
+  background: color-mix(in oklab, var(--bg) 72%, transparent);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  color: var(--fg-2); padding: 0;
+  transition: border-color .25s var(--ease), color .25s var(--ease), background .25s var(--ease), opacity .25s var(--ease);
+}
+.dev3d-zoom button:hover { border-color: var(--border-2); color: var(--fg); background: var(--surface); }
+.dev3d-zoom button:focus-visible { outline: 0; border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 15%, transparent); }
+.dev3d-zoom button:active { transform: translateY(1px); }
+.dev3d-zoom button[disabled] { opacity: .4; cursor: default; pointer-events: none; }
+.dev3d-zoom .ic { width: 15px; height: 15px; }
+@media (max-width: 700px) { .dev3d-zoom { right: 2%; bottom: 10%; } }
 .stage-tag {
   position: absolute; left: 50%; bottom: -6px; transform: translateX(-50%);
   white-space: nowrap; z-index: 3;
@@ -1626,7 +1655,7 @@ select.inp {
       <div class="stage-ring r3" aria-hidden="true"></div>
       <div class="stage-dev">
         <canvas id="dev3d" class="dev3d" role="img"
-                aria-label="Modelo tridimensional conceitual do Pulmio: corpo portátil com tela, botão e bocal descartável. Arraste, ou use as setas do teclado, para girar."></canvas>
+                aria-label="Modelo tridimensional conceitual do Pulmio: corpo portátil com tela, botão e bocal descartável. Arraste, ou use as setas do teclado, para girar; as teclas mais e menos aproximam e afastam."></canvas>
         <svg class="dev2d" viewBox="0 0 340 300" fill="none" aria-hidden="true">
           <defs>
             <linearGradient id="dv-body" x1="70" y1="40" x2="270" y2="280" gradientUnits="userSpaceOnUse">
@@ -1680,7 +1709,18 @@ select.inp {
         </svg>
       </div>
       <div class="dev3d-hint" id="dev3dHint" aria-hidden="true">
-        <svg class="ic"><use href="#i-rotate"/></svg>Arraste para girar
+        <svg class="ic"><use href="#i-rotate"/></svg>Arraste para girar · ctrl + roda para aproximar
+      </div>
+      <div class="dev3d-zoom" id="dev3dZoom">
+        <button type="button" data-z="mais" aria-label="Aproximar o modelo" title="Aproximar">
+          <svg class="ic" aria-hidden="true"><use href="#i-zoom-in"/></svg>
+        </button>
+        <button type="button" data-z="menos" aria-label="Afastar o modelo" title="Afastar">
+          <svg class="ic" aria-hidden="true"><use href="#i-zoom-out"/></svg>
+        </button>
+        <button type="button" data-z="reset" aria-label="Voltar ao enquadramento padrão" title="Enquadramento padrão">
+          <svg class="ic" aria-hidden="true"><use href="#i-fit"/></svg>
+        </button>
       </div>
       <div class="stage-note">
         Estudo de forma. Nenhum protótipo físico foi construído até o momento.
@@ -4441,6 +4481,12 @@ select.inp {
 
   var yaw = -0.44, pitch = 0.11;
   var manual = false, idleAt = 0, dragging = false, px = 0, py = 0;
+  /* zoom: a camera se aproxima dividindo a distancia base. O padrao ja
+     enquadra o aparelho maior do que o enquadramento original. */
+  /* ZDEF medido: e' o enquadramento maior que ainda deixa folga em todos
+     os angulos alcancaveis pelo arrasto (a sombra de contato encostava na
+     borda de baixo a partir de 1.18). */
+  var BASE = 44, ZMIN = 0.85, ZMAX = 2.4, ZDEF = 1.12, zoom = ZDEF, zoomSync = null;
   var t0 = performance.now(), tNow = 0, texT = -1;
   var DPR = 1, cw = 0, ch = 0;
 
@@ -4482,7 +4528,7 @@ select.inp {
       manual = false;
     }
 
-    var dist = 44;
+    var dist = BASE / zoom;
     var eye = [Math.sin(yaw) * Math.cos(pitch) * dist,
                Math.sin(pitch) * dist + 1.0,
                Math.cos(yaw) * Math.cos(pitch) * dist];
@@ -4611,12 +4657,63 @@ select.inp {
   cv.addEventListener('pointerup', drop);
   cv.addEventListener('pointercancel', drop);
 
+  /* ----------------------------- zoom -----------------------------
+     A roda do mouse sozinha NAO aproxima: o modelo fica no alto da
+     pagina, e capturar a rolagem ali prenderia quem so quer descer.
+     Aproximar pede intencao: os botoes, pinca, teclas +/- ou ctrl+roda. */
+  function setZoom(z, motivo) {
+    var antes = zoom;
+    zoom = cl(z, ZMIN, ZMAX);
+    if (zoom === antes) return false;
+    manual = true; idleAt = tNow;
+    if (motivo !== 'silencioso') start();
+    if (zoomSync) zoomSync();
+    render();
+    return true;
+  }
+
+  cv.addEventListener('wheel', function (e) {
+    if (!(e.ctrlKey || e.metaKey)) return;    /* sem ctrl, a pagina rola */
+    e.preventDefault();
+    setZoom(zoom * (e.deltaY < 0 ? 1.12 : 1 / 1.12));
+  }, { passive: false });
+
+  /* pinca: dois dedos na tela */
+  var toques = {}, pinca = 0;
+  cv.addEventListener('pointerdown', function (e) {
+    if (e.pointerType !== 'touch') return;
+    toques[e.pointerId] = [e.clientX, e.clientY];
+    var ids = Object.keys(toques);
+    if (ids.length === 2) {
+      dragging = false; host.classList.remove('dragging');
+      pinca = Math.hypot(toques[ids[0]][0] - toques[ids[1]][0], toques[ids[0]][1] - toques[ids[1]][1]);
+    }
+  });
+  cv.addEventListener('pointermove', function (e) {
+    if (e.pointerType !== 'touch' || !toques[e.pointerId]) return;
+    toques[e.pointerId] = [e.clientX, e.clientY];
+    var ids = Object.keys(toques);
+    if (ids.length !== 2 || !pinca) return;
+    e.preventDefault();
+    var d = Math.hypot(toques[ids[0]][0] - toques[ids[1]][0], toques[ids[0]][1] - toques[ids[1]][1]);
+    setZoom(zoom * (d / pinca));
+    pinca = d;
+  }, { passive: false });
+  function largaToque(e) { delete toques[e.pointerId]; if (Object.keys(toques).length < 2) pinca = 0; }
+  cv.addEventListener('pointerup', largaToque);
+  cv.addEventListener('pointercancel', largaToque);
+
+  cv.addEventListener('dblclick', function () { setZoom(ZDEF); });
+
   cv.addEventListener('keydown', function (e) {
     var step = 0.14;
     if (e.key === 'ArrowLeft') yaw -= step;
     else if (e.key === 'ArrowRight') yaw += step;
     else if (e.key === 'ArrowUp') pitch = cl(pitch + step * 0.6, -0.55, 0.75);
     else if (e.key === 'ArrowDown') pitch = cl(pitch - step * 0.6, -0.55, 0.75);
+    else if (e.key === '+' || e.key === '=') { e.preventDefault(); setZoom(zoom * 1.14); return; }
+    else if (e.key === '-' || e.key === '_') { e.preventDefault(); setZoom(zoom / 1.14); return; }
+    else if (e.key === '0') { e.preventDefault(); setZoom(ZDEF); return; }
     else return;
     e.preventDefault();
     manual = true; idleAt = tNow; start();
@@ -4630,11 +4727,38 @@ select.inp {
     canvas: cv,
     redraw: function () { render(); },
     view: function (y, p) {
-      if (y === undefined) return { yaw: yaw, pitch: pitch, manual: manual };
+      if (y === undefined) return { yaw: yaw, pitch: pitch, manual: manual, zoom: zoom };
       yaw = y; pitch = cl(p === undefined ? pitch : p, -0.55, 0.75);
       manual = true; idleAt = tNow; render();
-    }
+    },
+    /* usado pelos botoes de zoom do palco */
+    zoomBy: function (f) { return setZoom(f === 0 ? ZDEF : zoom * f); },
+    zoomInfo: function () { return { zoom: zoom, min: ZMIN, max: ZMAX }; }
   };
+
+  /* botoes de zoom do palco: existem no HTML, mas so ganham funcao aqui,
+     quando o WebGL abriu de fato */
+  (function () {
+    var caixa = document.getElementById('dev3dZoom');
+    if (!caixa) return;
+    var btns = caixa.querySelectorAll('button');
+    function sincroniza() {
+      for (var i = 0; i < btns.length; i++) {
+        var k = btns[i].getAttribute('data-z');
+        if (k === 'mais') btns[i].disabled = zoom >= ZMAX - 0.001;
+        else if (k === 'menos') btns[i].disabled = zoom <= ZMIN + 0.001;
+      }
+    }
+    caixa.addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (!b) return;
+      var k = b.getAttribute('data-z');
+      setZoom(k === 'mais' ? zoom * 1.18 : k === 'menos' ? zoom / 1.18 : ZDEF);
+      sincroniza();
+    });
+    zoomSync = sincroniza;
+    sincroniza();
+  })();
 
   host.classList.add('is3d');
   cv.setAttribute('tabindex', '0');
