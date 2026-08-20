@@ -81,6 +81,9 @@
 /* Roboto variável embutida: substitui a voz monoespaçada técnica dos
    rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
 /* Inter variável embutida (woff2), o site não depende de rede */
+/* Roboto variável embutida: substitui a voz monoespaçada técnica dos
+   rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
+/* Inter variável embutida (woff2), o site não depende de rede */
 /* =========================================================================
    PULMIO, sistema de design
    Tokens → primitivos → componentes → seções
@@ -586,7 +589,12 @@ section { position: relative; }
 /* marquee institucional (hero-section-3 logo cloud) */
 .strip { border-block: 1px solid var(--border); padding-block: 20px; overflow: hidden; position: relative; }
 .strip-in { display: flex; width: max-content; animation: slide 44s linear infinite; }
-.strip:hover .strip-in { animation-duration: 90s; }
+/* Desacelerar no hover trocando animation-duration fazia a faixa PULAR:
+   o progresso e' tempo decorrido dividido pela duracao, entao mudar a
+   duracao no meio do ciclo reposiciona tudo (medido: 274px para tras ao
+   entrar, e de volta ao sair). Quem desacelera agora e' o JS, pela taxa
+   de reproducao, que preserva a posicao. Sem WAAPI, so pausa. */
+.strip.sem-waapi:hover .strip-in { animation-play-state: paused; }
 @keyframes slide { to { transform: translateX(-50%); } }
 .strip-set { display: flex; align-items: center; gap: clamp(34px, 5vw, 76px); padding-right: clamp(34px, 5vw, 76px); }
 .strip-set span {
@@ -3785,6 +3793,18 @@ select.inp {
       s.classList.add('on');
       s.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
+  });
+
+  /* ---------- faixas deslizantes: desacelerar sem saltar ---------- */
+  $$('.strip').forEach(function (faixa) {
+    var trilho = $('.strip-in', faixa);
+    if (!trilho || !trilho.getAnimations) { faixa.classList.add('sem-waapi'); return; }
+    var an = trilho.getAnimations()[0];
+    if (!an || !an.updatePlaybackRate) { faixa.classList.add('sem-waapi'); return; }
+    /* updatePlaybackRate mantem o tempo corrente: a faixa apenas perde
+       velocidade no lugar onde estava, em vez de reposicionar */
+    faixa.addEventListener('pointerenter', function () { an.updatePlaybackRate(0.35); });
+    faixa.addEventListener('pointerleave', function () { an.updatePlaybackRate(1); });
   });
 })();
 </script>
