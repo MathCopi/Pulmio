@@ -79,6 +79,9 @@
 /* Roboto variável embutida: substitui a voz monoespaçada técnica dos
    rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
 /* Inter variável embutida (woff2), o site não depende de rede */
+/* Roboto variável embutida: substitui a voz monoespaçada técnica dos
+   rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
+/* Inter variável embutida (woff2), o site não depende de rede */
 /* =========================================================================
    PULMIO, sistema de design
    Tokens → primitivos → componentes → seções
@@ -1284,8 +1287,12 @@ select.inp {
   background: color-mix(in oklab, var(--bg) 55%, transparent); backdrop-filter: blur(4px);
 }
 @media (max-width: 700px) { .mx-fig { grid-template-columns: 1fr; } }
-.mx-cap { margin-top: 14px; }
-.mx-cap p { font-size: .82rem; line-height: 1.65; color: var(--fg-3); max-width: 68ch; }
+/* a legenda usa a mesma grade 58/42 dos painéis acima: a explicação de (a)
+   fica alinhada sob o painel a, a de (b) sob o painel b, em vez de um único
+   parágrafo travado em 68ch que deixava a metade direita da figura vazia */
+.mx-cap { margin-top: 14px; display: grid; gap: clamp(14px, 1.6vw, 22px); grid-template-columns: minmax(0, 58fr) minmax(0, 42fr); }
+@media (max-width: 700px) { .mx-cap { grid-template-columns: 1fr; } }
+.mx-cap p { font-size: .82rem; line-height: 1.65; color: var(--fg-3); }
 .mx-cap p b { color: var(--fg-2); font-weight: 600; }
 
 /* legenda de átomos, colada à imagem: as cores vêm da própria figura */
@@ -2083,8 +2090,11 @@ select.inp {
         <p>
           <b>Figura 1.</b> Representação esquemática da heteroestrutura Ti₃C₂/MoS₂ estudada por DFT. Em <b>(a)</b>,
           a vista lateral: o empilhamento do oxigênio na base ao enxofre no topo, o vão da interface, e os sítios
-          A, B e C onde a adsorção foi testada. Em <b>(b)</b>, a vista superior, recortada pela célula de simulação.
-          Distâncias e raios atômicos fora de escala; a geometria relaxada pertence ao manuscrito.
+          A, B e C onde a adsorção foi testada.
+        </p>
+        <p>
+          Em <b>(b)</b>, a vista superior, recortada pela célula de simulação. Distâncias e raios atômicos fora de
+          escala; a geometria relaxada pertence ao manuscrito.
         </p>
       </figcaption>
     </figure>
