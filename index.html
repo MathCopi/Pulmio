@@ -90,6 +90,9 @@
 /* Roboto variável embutida: substitui a voz monoespaçada técnica dos
    rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
 /* Inter variável embutida (woff2), o site não depende de rede */
+/* Roboto variável embutida: substitui a voz monoespaçada técnica dos
+   rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
+/* Inter variável embutida (woff2), o site não depende de rede */
 /* =========================================================================
    PULMIO, sistema de design
    Tokens → primitivos → componentes → seções
@@ -1380,11 +1383,22 @@ select.inp {
   .nav-links, .nav-act .btn { display: none; }
   .burger { display: grid; position: relative; }
   .drawer { display: grid; }
+  /* A barra já ocupa a largura toda aqui, então animar max-width de 1180px
+     até 100% não mudava um pixel na tela e custava layout a cada quadro. */
+  .nav-in {
+    max-width: 100%;
+    transition: background .4s var(--ease), border-color .4s var(--ease), box-shadow .4s var(--ease);
+  }
   .nav.is-scrolled .nav-in, .nav[data-menu="on"] .nav-in {
     max-width: 100%;
-    background: color-mix(in oklab, var(--bg) 88%, transparent);
+    /* Fundo quase opaco no lugar do backdrop-filter. A 88% o desfoque já
+       quase não aparecia, mas obrigava o navegador a desfocar a região atrás
+       da barra a cada quadro. E no topo da página o que está atrás é o canvas
+       WebGL do modelo, que se redesenha sempre: era ele que travava a abertura
+       do menu de quem ainda não tinha rolado nada. */
+    background: color-mix(in oklab, var(--bg) 97%, transparent);
     border-color: var(--border);
-    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: none; -webkit-backdrop-filter: none;
   }
 }
 @media (max-width: 900px) {
@@ -3182,17 +3196,23 @@ select.inp {
 
   /* ---------- menu mobile ---------- */
   if (burger) {
+    /* o modelo 3D fica parado enquanto o painel abre: sao os dois unicos
+       animando ao mesmo tempo no topo da pagina, e o canvas se redesenha a
+       cada quadro sem ninguem estar olhando para ele */
+    function modelo(parar) {
+      if (window.pulmio3D && window.pulmio3D.pause) window.pulmio3D.pause(parar);
+    }
+    function alternar(abrir) {
+      nav.setAttribute('data-menu', abrir ? 'on' : 'off');
+      burger.setAttribute('aria-expanded', String(abrir));
+      burger.setAttribute('aria-label', abrir ? 'Fechar menu' : 'Abrir menu');
+      modelo(abrir);
+    }
     burger.addEventListener('click', function () {
-      var on = nav.getAttribute('data-menu') === 'on';
-      nav.setAttribute('data-menu', on ? 'off' : 'on');
-      burger.setAttribute('aria-expanded', String(!on));
-      burger.setAttribute('aria-label', on ? 'Abrir menu' : 'Fechar menu');
+      alternar(nav.getAttribute('data-menu') !== 'on');
     });
     $$('#drawer a').forEach(function (a) {
-      a.addEventListener('click', function () {
-        nav.setAttribute('data-menu', 'off');
-        burger.setAttribute('aria-expanded', 'false');
-      });
+      a.addEventListener('click', function () { alternar(false); });
     });
   }
 
@@ -4642,13 +4662,16 @@ select.inp {
   /* ---------------------------------------------------------------
      laço e interação
      --------------------------------------------------------------- */
-  var running = true, visible = true, raf = 0;
+  /* `livre` e' desligado por quem cobre a cena (hoje, o menu do celular):
+     um canvas que se redesenha atras de um painel que esta abrindo disputa
+     GPU com a animacao do painel, e o modelo nem esta sendo olhado. */
+  var running = true, visible = true, livre = true, raf = 0;
 
   function frame() {
     raf = 0;
-    if (running && visible) { render(); raf = requestAnimationFrame(frame); }
+    if (running && visible && livre) { render(); raf = requestAnimationFrame(frame); }
   }
-  function start() { if (!raf && running && visible) raf = requestAnimationFrame(frame); }
+  function start() { if (!raf && running && visible && livre) raf = requestAnimationFrame(frame); }
 
   document.addEventListener('visibilitychange', function () {
     running = !document.hidden;
@@ -4766,6 +4789,9 @@ select.inp {
     },
     /* usado pelos botoes de zoom do palco */
     zoomBy: function (f) { return setZoom(f === 0 ? ZDEF : zoom * f); },
+    /* pausa o laco enquanto algo cobre a cena; ao voltar, o relogio segue
+       de onde estava porque o tempo vem de performance.now(), nao do laco */
+    pause: function (p) { livre = !p; if (livre) start(); },
     zoomInfo: function () { return { zoom: zoom, min: ZMIN, max: ZMAX }; }
   };
 

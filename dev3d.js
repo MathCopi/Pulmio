@@ -816,13 +816,16 @@
   /* ---------------------------------------------------------------
      laço e interação
      --------------------------------------------------------------- */
-  var running = true, visible = true, raf = 0;
+  /* `livre` e' desligado por quem cobre a cena (hoje, o menu do celular):
+     um canvas que se redesenha atras de um painel que esta abrindo disputa
+     GPU com a animacao do painel, e o modelo nem esta sendo olhado. */
+  var running = true, visible = true, livre = true, raf = 0;
 
   function frame() {
     raf = 0;
-    if (running && visible) { render(); raf = requestAnimationFrame(frame); }
+    if (running && visible && livre) { render(); raf = requestAnimationFrame(frame); }
   }
-  function start() { if (!raf && running && visible) raf = requestAnimationFrame(frame); }
+  function start() { if (!raf && running && visible && livre) raf = requestAnimationFrame(frame); }
 
   document.addEventListener('visibilitychange', function () {
     running = !document.hidden;
@@ -940,6 +943,9 @@
     },
     /* usado pelos botoes de zoom do palco */
     zoomBy: function (f) { return setZoom(f === 0 ? ZDEF : zoom * f); },
+    /* pausa o laco enquanto algo cobre a cena; ao voltar, o relogio segue
+       de onde estava porque o tempo vem de performance.now(), nao do laco */
+    pause: function (p) { livre = !p; if (livre) start(); },
     zoomInfo: function () { return { zoom: zoom, min: ZMIN, max: ZMAX }; }
   };
 
