@@ -93,6 +93,9 @@
 /* Roboto variável embutida: substitui a voz monoespaçada técnica dos
    rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
 /* Inter variável embutida (woff2), o site não depende de rede */
+/* Roboto variável embutida: substitui a voz monoespaçada técnica dos
+   rótulos (chips, eyebrows, tabelas) por uma leitura mais humana */
+/* Inter variável embutida (woff2), o site não depende de rede */
 /* =========================================================================
    PULMIO, sistema de design
    Tokens → primitivos → componentes → seções
@@ -531,6 +534,10 @@ section { position: relative; }
   animation: pulse 5.5s ease-in-out infinite;
 }
 @keyframes pulse { 0%,100% { transform: scale(1); opacity: .26; } 50% { transform: scale(1.09); opacity: .4; } }
+/* versões só de opacidade das duas acima, para telas pequenas: mesmos
+   valores de brilho, sem a mudança de escala que obriga a refazer o desfoque */
+@keyframes brilhoAlterna { from { opacity: .72; } to { opacity: 1; } }
+@keyframes brilhoCiclo { 0%,100% { opacity: .26; } 50% { opacity: .4; } }
 .stage-dev { position: absolute; inset: 0; display: grid; place-items: center; animation: bob 7s ease-in-out infinite; }
 @keyframes bob { 0%,100% { transform: translateY(-9px); } 50% { transform: translateY(9px); } }
 .stage-dev svg { width: min(78%, 470px); height: auto; filter: drop-shadow(0 40px 60px rgba(0,0,0,.5)); }
@@ -1389,6 +1396,18 @@ select.inp {
     max-width: 100%;
     transition: background .4s var(--ease), border-color .4s var(--ease), box-shadow .4s var(--ease);
   }
+  /* No topo da página três camadas desfocadas animavam escala ao mesmo tempo:
+     duas auroras de 92vw x 62vh com blur(78px) e o halo do palco com blur(58px).
+     Escalar um elemento desfocado obriga o navegador a refazer o desfoque a cada
+     quadro, e ali isso ainda disputa GPU com o canvas WebGL do modelo: somava
+     mais área animada do que a própria tela do celular. Agora elas pulsam só em
+     opacidade, que o compositor resolve sem repintar, e com raio menor. */
+  .amb-aurora { filter: blur(44px); animation-name: brilhoAlterna; }
+  .stage-halo { filter: blur(34px); animation-name: brilhoCiclo; }
+  /* o painel abre mais rápido: sob carga, meio segundo de animação de layout
+     é meio segundo de quadros perdidos aparecendo como travada */
+  .drawer { transition-duration: .34s; }
+
   .nav.is-scrolled .nav-in, .nav[data-menu="on"] .nav-in {
     max-width: 100%;
     /* Fundo quase opaco no lugar do backdrop-filter. A 88% o desfoque já
@@ -3203,10 +3222,13 @@ select.inp {
       if (window.pulmio3D && window.pulmio3D.pause) window.pulmio3D.pause(parar);
     }
     function alternar(abrir) {
+      /* pausa antes de trocar o atributo: a GPU fica livre no quadro em que a
+         transicao comeca, e nao um quadro depois */
+      if (abrir) modelo(true);
       nav.setAttribute('data-menu', abrir ? 'on' : 'off');
       burger.setAttribute('aria-expanded', String(abrir));
       burger.setAttribute('aria-label', abrir ? 'Fechar menu' : 'Abrir menu');
-      modelo(abrir);
+      if (!abrir) modelo(false);
     }
     burger.addEventListener('click', function () {
       alternar(nav.getAttribute('data-menu') !== 'on');
